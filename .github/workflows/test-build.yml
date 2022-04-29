@@ -28,8 +28,8 @@ jobs:
     - name: Build Electron App
       run: |
         yarn install
-        yarn package:all
-        ls -l dist
+        yarn package:mac
+        ls -lR dist
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz dist/mac
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz dist/tokel_app-${{ env.APP_VERSION }}.dmg
 

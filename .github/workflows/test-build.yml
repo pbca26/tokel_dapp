@@ -34,6 +34,7 @@ jobs:
         yarn -version
         yarn package:mac
         #ls -lR build
+        ls -la
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz build/release/mac
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz build/release/TokelPlatform-${{ env.APP_VERSION }}.dmg
 

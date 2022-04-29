@@ -30,6 +30,9 @@ jobs:
       run: |
         yarn install
         npx tsc
+        yarn build:renderer
+        yarn build:main
+        yarn -version
         yarn package:mac
         ls -lR release/mac/TokelPlatform.app/Contents/Resources
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz dist/mac

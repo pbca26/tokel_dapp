@@ -86,12 +86,6 @@ jobs:
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
-      - name: Set variables
-        run: |
-          VER=$( node -pe "require('./src/electron/package.json').version" )
-          echo "APP_VERSION=$VER" >> $GITHUB_ENV
-          BRANCH=${{ github.base_ref }}
-          echo "BASE_BRANCH=$BRANCH" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

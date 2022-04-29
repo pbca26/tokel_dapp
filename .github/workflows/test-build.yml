@@ -31,7 +31,7 @@ jobs:
         yarn install
         npx tsc
         yarn package:mac
-        ls -lR dist
+        ls -lR release/mac/TokelPlatform.app/Contents/Resources
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz dist/mac
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz dist/tokel_app-${{ env.APP_VERSION }}.dmg
 

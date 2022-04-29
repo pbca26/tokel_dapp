@@ -2,7 +2,6 @@
   "name": "tokel_app",
   "productName": "TokelPlatform",
   "description": "Komodo ecosystem’s Token Platform",
-  "version": "0.1.1",
   "scripts": {
     "lint": "cross-env NODE_ENV=development && eslint . --cache --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "cross-env NODE_ENV=development eslint . --cache --ext .js,.jsx,.ts,.tsx --fix",
@@ -281,7 +280,7 @@
     "terser-webpack-plugin": "^5.0.3",
     "testcafe": "^1.18.5",
     "testcafe-browser-provider-electron": "^0.0.18",
-    "typescript": "^4.2.4",
+    "typescript": "^4.6.4",
     "url-loader": "^4.1.0",
     "webpack": "^5.32.0",
     "webpack-bundle-analyzer": "^4.1.0",

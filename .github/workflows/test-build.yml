@@ -10,7 +10,6 @@ jobs:
   job-macos-build:
     name: Build (MacOS)
     runs-on: macos-latest
-    needs: job-gui-build
 
     steps:
     - uses: actions/checkout@v1

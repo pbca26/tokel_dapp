@@ -9,7 +9,6 @@ import DashIcon from 'assets/Dash.svg';
 import SwapIcon from 'assets/Swap.svg';
 import ToggleIcon from 'assets/Toggle.svg';
 import TokenIcon from 'assets/Token.svg';
-
 import { dispatch } from 'store/rematch';
 import { selectView } from 'store/selectors';
 import { VERSIONS_MSG, ViewType } from 'vars/defines';
@@ -24,19 +23,19 @@ export const menuData = [
     icon: DashIcon,
   },
   {
+    type: ViewType.DEX,
+    name: 'DEX',
+    icon: BagIcon,
+  },
+  {
     type: ViewType.CREATE_TOKEN,
-    name: 'Create Token',
+    name: 'Create',
     icon: TokenIcon,
   },
   {
-    type: ViewType.DEX,
-    name: 'DEX',
+    type: ViewType.SWAP,
+    name: 'Swap',
     icon: SwapIcon,
-  },
-  {
-    type: ViewType.NFT_MARKET,
-    name: 'NFT Market',
-    icon: BagIcon,
   },
   {
     type: ViewType.SETTINGS,
@@ -94,4 +93,5 @@ const SideMenu = () => {
   );
 };
 
+export { SideMenuRoot };
 export default SideMenu;

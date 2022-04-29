@@ -81,21 +81,21 @@ jobs:
       - name: Prepare Checksum file
         run: |
           md5sum tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz >> checksum.txt
-          md5sum tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz >> checksum.txt
-
-      - name: Generate build number  # gen ${{ steps.buildnumber.outputs.build_number }} for release name
-        id: buildnumber
-        uses: einaregilsson/build-number@v1 
-        with:
-          token: ${{secrets.github_token}}        
+          md5sum tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz >> checksum.txt   
 
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
+      - name: Set variables
+        run: |
+          VER=$( node -pe "require('./src/electron/package.json').version" )
+          echo "APP_VERSION=$VER" >> $GITHUB_ENV
+          BRANCH=${{ github.base_ref }}
+          echo "BASE_BRANCH=$BRANCH" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.buildnumber.outputs.build_number }}
+          tag_name: ${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}
           release_name: Build - ${{ github.sha }}
           draft: false
           prerelease: true

@@ -20,11 +20,11 @@ jobs:
 
     - name: Set variables
       run: |
+        echo "USE_HARD_LINKS=false" >> $GITHUB_ENV
         VER=$( node -pe "require('./package.json').version" )
         echo "APP_VERSION=$VER" >> $GITHUB_ENV
         BRANCH=${{ github.base_ref }}
         echo "BASE_BRANCH=$BRANCH" >> $GITHUB_ENV
-        USE_HARD_LINKS=false
 
     - name: Build Electron App
       run: |

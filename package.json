@@ -62,6 +62,7 @@
       "externalMedia.html",
       "package.json",
       "worker.js",
+      "main.js",
       "nspv-bitgo.js",
       "node_modules"
     ],

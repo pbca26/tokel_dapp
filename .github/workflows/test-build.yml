@@ -89,7 +89,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}
+          tag_name: v${{ env.APP_VERSION }}-${{ env.BASE_BRANCH }}
           release_name: Build - ${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}
           draft: false
           prerelease: true

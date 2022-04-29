@@ -29,6 +29,7 @@ jobs:
     - name: Build Electron App
       run: |
         yarn install
+        yarn tsc
         yarn package:mac
         ls -lR dist
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz dist/mac

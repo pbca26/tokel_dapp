@@ -1,0 +1,134 @@
+name: HWKMDElectronCI
+
+on: 
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - test-build
+      - development
+jobs:
+  job-macos-build:
+    name: Build (MacOS)
+    runs-on: macos-latest
+    needs: job-gui-build
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download pre-built GUI
+      uses: actions/download-artifact@v1
+      with:
+        name: gui
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '16'
+        check-latest: true
+
+    - name: Set variables
+      run: |
+        VER=$( node -pe "require('./package.json').version" )
+        echo "APP_VERSION=$VER" >> $GITHUB_ENV
+        BRANCH=${{ github.base_ref }}
+        echo "BASE_BRANCH=$BRANCH" >> $GITHUB_ENV
+
+    - name: Build Electron App
+      run: |
+        yarn install
+        yarn package:all
+        ls -l dist
+        tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz dist/mac
+        tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz dist/tokel_app-${{ env.APP_VERSION }}.dmg
+
+    - name: Upload tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz as artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg
+        path: ./tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz
+
+    - name: Upload tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz as artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable
+        path: ./electron/tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz
+
+  job-release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [job-macos-build]
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set variables
+        run: |
+          VER=$( node -pe "require('./package.json').version" )
+          echo "APP_VERSION=$VER" >> $GITHUB_ENV
+          BRANCH=${{ github.base_ref }}
+          echo "BASE_BRANCH=$BRANCH" >> $GITHUB_ENV
+      - name: ACTIONS_ALLOW_UNSECURE_COMMANDS
+        id: ACTIONS_ALLOW_UNSECURE_COMMANDS
+        run: echo 'ACTIONS_ALLOW_UNSECURE_COMMANDS=true' >> $GITHUB_ENV
+      - name: Download Artifacts Portable (MacOS)
+        uses: actions/download-artifact@v1
+        with:
+          name: tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable
+      - name: Download Artifacts DMG (MacOS)
+        uses: actions/download-artifact@v1
+        with:
+          name: tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg
+      - name: Prepare Archives
+        run: |
+          mv tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable/tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz .
+          mv tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg/tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz .
+      - name: Prepare Checksum file
+        run: |
+          md5sum tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz >> checksum.txt
+          md5sum tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz >> checksum.txt
+
+      - name: Generate build number  # gen ${{ steps.buildnumber.outputs.build_number }} for release name
+        id: buildnumber
+        uses: einaregilsson/build-number@v1 
+        with:
+          token: ${{secrets.github_token}}        
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.buildnumber.outputs.build_number }}
+          release_name: Build - ${{ github.sha }}
+          draft: false
+          prerelease: true
+
+      - name: Upload Release Asset Portable (MacOS)
+        id: upload-release-asset-macos-portable
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz
+          asset_name: tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz
+          asset_content_type: application/tar+gzip
+
+      - name: Upload Release Asset DMG (MacOS)
+        id: upload-release-asset-macos-dmg
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz
+          asset_name: tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz
+          asset_content_type: application/tar+gzip
+
+      - name: Upload Checksum File
+        id: upload-release-asset-checksum
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./checksum.txt
+          asset_name: checksum.txt
+          asset_content_type: text/plain

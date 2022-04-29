@@ -30,7 +30,7 @@ jobs:
       run: |
         yarn install
         yarn tsc
-        ls -lR egrep -v 'node_modules|src/electron/node_modules'
+        ls -lR | egrep -v 'node_modules|src/electron/node_modules'
         yarn package:mac
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz dist/mac
         tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz dist/tokel_app-${{ env.APP_VERSION }}.dmg

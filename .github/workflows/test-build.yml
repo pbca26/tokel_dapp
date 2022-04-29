@@ -1,4 +1,4 @@
-name: HWKMDElectronCI
+name: TokelDappBuildCI
 
 on: 
   pull_request:
@@ -10,14 +10,9 @@ jobs:
   job-macos-build:
     name: Build (MacOS)
     runs-on: macos-latest
-    needs: job-gui-build
 
     steps:
     - uses: actions/checkout@v1
-    - name: Download pre-built GUI
-      uses: actions/download-artifact@v1
-      with:
-        name: gui
     - uses: actions/setup-node@v1
       with:
         node-version: '16'
@@ -25,7 +20,8 @@ jobs:
 
     - name: Set variables
       run: |
-        VER=$( node -pe "require('./package.json').version" )
+        echo "USE_HARD_LINKS=false" >> $GITHUB_ENV
+        VER=$( node -pe "require('./src/electron/package.json').version" )
         echo "APP_VERSION=$VER" >> $GITHUB_ENV
         BRANCH=${{ github.base_ref }}
         echo "BASE_BRANCH=$BRANCH" >> $GITHUB_ENV
@@ -33,10 +29,14 @@ jobs:
     - name: Build Electron App
       run: |
         yarn install
-        yarn package:all
-        ls -l dist
-        tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz dist/mac
-        tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz dist/tokel_app-${{ env.APP_VERSION }}.dmg
+        yarn build:renderer
+        yarn build:main
+        yarn -version
+        yarn package:mac
+        #ls -lR build
+        #ls -la release
+        tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz release/mac
+        tar -czvf tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz release/TokelPlatform-${{ env.APP_VERSION }}.dmg
 
     - name: Upload tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz as artifact
       uses: actions/upload-artifact@v1
@@ -48,7 +48,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable
-        path: ./electron/tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz
+        path: ./tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz
 
   job-release:
     name: Release
@@ -59,7 +59,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: Set variables
         run: |
-          VER=$( node -pe "require('./package.json').version" )
+          VER=$( node -pe "require('./src/electron/package.json').version" )
           echo "APP_VERSION=$VER" >> $GITHUB_ENV
           BRANCH=${{ github.base_ref }}
           echo "BASE_BRANCH=$BRANCH" >> $GITHUB_ENV
@@ -81,13 +81,7 @@ jobs:
       - name: Prepare Checksum file
         run: |
           md5sum tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-portable.tar.gz >> checksum.txt
-          md5sum tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz >> checksum.txt
-
-      - name: Generate build number  # gen ${{ steps.buildnumber.outputs.build_number }} for release name
-        id: buildnumber
-        uses: einaregilsson/build-number@v1 
-        with:
-          token: ${{secrets.github_token}}        
+          md5sum tokel-dapp-osx-${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}-dmg.tar.gz >> checksum.txt   
 
       - name: Create Release
         id: create_release
@@ -95,8 +89,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.buildnumber.outputs.build_number }}
-          release_name: Build - ${{ github.sha }}
+          tag_name: v${{ env.APP_VERSION }}-${{ env.BASE_BRANCH }}
+          release_name: Build / ${{ env.BASE_BRANCH }}-${{ env.APP_VERSION }}
           draft: false
           prerelease: true
 
